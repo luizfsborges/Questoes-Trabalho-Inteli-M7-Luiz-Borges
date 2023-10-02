@@ -9,12 +9,14 @@ Este autoestudo tem por objetivo verificar se o estudante consegue criar uma apl
 | ***ESCLARECIMENTO:*** Quem iniciou a atividade com nuvem comercial pode continuar seu desenvolvimento utilizando a solução de nuvem comercial. Contudo, os pontos avaliados não demandam sua utilização.
 
 Os estudantes devem criar uma aplicação em Python utilizam algum framework Web (sugesre-se o Flask ou o Fastapi), para apresentar uma página HTML com o currículo do estudante. Alguns modelos de páginas podem ser encontrados em:
+
 - [Exemplo de currículo de programador júnior](https://www.kickresume.com/pt/centro-de-ajuda/programador-junior-1-amostra-de-curriculo/)
 - [Eu sou Mario Souto, prazer!](https://mariosouto.com/sobre/)
 
 A aplicação deve ser containerizada e deve ser possível executá-la em um container Docker. O estudante deve descrever o que foi necessário para realizar o desenvolvimento da aplicação e containerização. O estudante deve ainda descrever como executar a aplicação em um container Docker.
 
 O dockerfile deve conter as seguintes informações:
+
 - A imagem base deve ser a imagem oficial do Python (a escolha do estudante)
 - A imagem deve instalar o framework web escolhido
 - A imagem deve copiar o código fonte da aplicação para o container
@@ -22,11 +24,12 @@ O dockerfile deve conter as seguintes informações:
 - A imagem deve executar o comando para iniciar a aplicação
 - A imagem deve estar publicada no Dockerhub
 
-| ***old:*** Este autoestudo tem por objetivo verificar se o aluno estudante conseguiu criar sua conta em uma nuvem comercial e se ele possui os conhecimentos mínimos para realizar sua manipulação. 
+| ***old:*** Este autoestudo tem por objetivo verificar se o aluno estudante conseguiu criar sua conta em uma nuvem comercial e se ele possui os conhecimentos mínimos para realizar sua manipulação.
 
 ## Padrão de qualidade
 
 Os pontos que serão avaliados na entrega do projeto:
+
 1. ***(Até 3.0 pontos)*** Construção do dockerfile: o arquivo contem todas as informações necessárias para a construção da imagem
 2. ***(Até 1.0 pontos)*** A imagem foi construída sem problemas: com o arquivo fonte fornecido, foi possível construir a imagem
 3. (Até 2.0 pontos) A imagem foi publicada no Dockerhub: a imagem está disponível no Dockerhub
@@ -42,3 +45,22 @@ O arquivo README do repositório deve conter as informações do estudante, o li
 ## Prazo de Entrega:
 
 As entregas serão consideradas até as 23h59 do dia 13/08/2023. Será considerado o último commit antes do prazo de entrega.
+
+## Instruções de instalação e execução:
+
+1. Baixar a imagem do docker disponível no Dockerhub: https://hub.docker.com/r/luizfsborges/flask-app:
+
+   ```
+   docker pull luizfsborges/flask-app
+   ```
+2. Executar o container:
+
+   ```
+   docker run -d -p 80:80 luizfsborges/flask-app
+   ```
+3. Acessar o currículo no endereço: [http://localhost:80](http://localhost/)
+4. Caso deseje interromper a execução do container, substituir "[CONTAINER_ID]" pelo código identificador de execução do container:
+
+   ```
+   docker stop [CONTAINER_ID]
+   ```
