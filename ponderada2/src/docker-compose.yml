@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  src-database-1:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: your_username
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: notes_db
+    ports:
+      - "5432:5432"
+
+  src-backend-1:
+    build:
+      context: ./  # Adjusted the context to the root directory
+      dockerfile: Dockerfile.backend
+    depends_on:
+      - src-database-1
+    ports:
+      - "5000:5000"
+
+  src-frontend-1:
+    build:
+      context: ./  # Adjusted the context to the root directory
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "80:80"
