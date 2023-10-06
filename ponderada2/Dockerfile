@@ -1,6 +1,7 @@
 # Use an official Python runtime as a parent image
 FROM python:3.8-slim
 
+
 # Set the working directory to /app
 WORKDIR /app
 
@@ -14,7 +15,9 @@ RUN pip install --trusted-host pypi.python.org -r requirements.txt
 EXPOSE 5000
 
 # Define environment variable
-ENV FLASK_APP scr/app.py
+ENV FLASK_APP app.py
+
+WORKDIR /app/src
 
 # Run app.py when the container launches
 CMD ["flask", "run", "--host=0.0.0.0"]

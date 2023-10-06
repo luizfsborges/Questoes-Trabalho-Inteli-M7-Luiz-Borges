@@ -5,9 +5,11 @@ services:
     image: postgres:latest
     container_name: mypostgres
     environment:
-      POSTGRES_USER: teste
-      POSTGRES_PASSWORD: teste123
-      POSTGRES_DB: notes
+      - DB_HOST=localhost  # Use localhost since it's on the same Docker host
+      - DB_PORT=5432      # Specify the port for PostgreSQL
+      - DB_USER=teste
+      - DB_PASSWORD=teste123
+      - DB_NAME=notes
     ports:
       - "5432:5432"
 

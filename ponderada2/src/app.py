@@ -5,13 +5,13 @@ import psycopg2
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
-# PostgreSQL database setup
 def create_table():
     conn = psycopg2.connect(
-        host='postgres',
-        user='teste',
-        password='teste123',
-        database='notes'
+        host=os.environ.get('DB_HOST', 'localhost'),
+        port=int(os.environ.get('DB_PORT', 54321)),
+        user=os.environ.get('DB_USER', 'teste'),
+        password=os.environ.get('DB_PASSWORD', 'teste123'),
+        database=os.environ.get('DB_NAME', 'notes')
     )
     cursor = conn.cursor()
     cursor.execute('''
@@ -27,10 +27,11 @@ def create_table():
 
 def get_notes():
     conn = psycopg2.connect(
-        host='postgres',
-        user='teste',
-        password='teste123',
-        database='notes'
+        host=os.environ.get('DB_HOST', 'localhost'),
+        port=int(os.environ.get('DB_PORT', 54321)),
+        user=os.environ.get('DB_USER', 'teste'),
+        password=os.environ.get('DB_PASSWORD', 'teste123'),
+        database=os.environ.get('DB_NAME', 'notes')
     )
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM notes')
