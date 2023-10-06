@@ -1,26 +1,22 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import sqlite3
 import os
+import psycopg2
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
-# Sample user for authentication
-VALID_USERNAME = 'teste'
-VALID_PASSWORD = 'teste123'
-
-# Define the root path for the project
-ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-
-# SQLite database setup
+# PostgreSQL database setup
 def create_table():
-    db_path = os.path.join(ROOT_PATH, 'notes.db')
-    print(f"Database path: {db_path}")
-    conn = sqlite3.connect(db_path)
+    conn = psycopg2.connect(
+        host='postgres',
+        user='teste',
+        password='teste123',
+        database='notes'
+    )
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS notes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             title TEXT NOT NULL,
             content TEXT NOT NULL
         )
@@ -30,7 +26,12 @@ def create_table():
     print("Table created successfully")
 
 def get_notes():
-    conn = sqlite3.connect(os.path.join(ROOT_PATH, 'notes.db'))
+    conn = psycopg2.connect(
+        host='postgres',
+        user='teste',
+        password='teste123',
+        database='notes'
+    )
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM notes')
     notes = cursor.fetchall()
@@ -49,7 +50,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        if username == VALID_USERNAME and password == VALID_PASSWORD:
+        if username == 'your_valid_username' and password == 'your_valid_password':
             # Authentication successful
             session['username'] = username
             create_table()
@@ -68,9 +69,14 @@ def notes():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
-        conn = sqlite3.connect(os.path.join(ROOT_PATH, 'notes.db'))
+        conn = psycopg2.connect(
+            host='postgres',
+            user='teste',
+            password='teste123',
+            database='notes'
+        )
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO notes (title, content) VALUES (?, ?)', (title, content))
+        cursor.execute('INSERT INTO notes (title, content) VALUES (%s, %s)', (title, content))
         conn.commit()
         conn.close()
 
@@ -85,31 +91,46 @@ def edit(note_id):
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
-        conn = sqlite3.connect(os.path.join(ROOT_PATH, 'notes.db'))
+        conn = psycopg2.connect(
+            host='postgres',
+            user='teste',
+            password='teste123',
+            database='notes'
+        )
         cursor = conn.cursor()
-        cursor.execute('UPDATE notes SET title=?, content=? WHERE id=?', (title, content, note_id))
+        cursor.execute('UPDATE notes SET title=%s, content=%s WHERE id=%s', (title, content, note_id))
         conn.commit()
         conn.close()
         return redirect(url_for('notes'))
 
-    conn = sqlite3.connect(os.path.join(ROOT_PATH, 'notes.db'))
+    conn = psycopg2.connect(
+        host='postgres',
+        user='teste',
+        password='teste123',
+        database='notes'
+    )
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM notes WHERE id = ?', (note_id,))
+    cursor.execute('SELECT * FROM notes WHERE id = %s', (note_id,))
     note = cursor.fetchone()
     conn.close()
 
     return render_template('edit.html', note=note)
 
-# Modify the delete route in app.py
+# Modify the delete route
 @app.route('/delete/<int:note_id>', methods=['POST', 'DELETE'])
 def delete(note_id):
     if 'username' not in session:
         return redirect(url_for('login'))
 
     if request.method == 'POST' or (request.method == 'POST' and request.form.get('_method') == 'DELETE'):
-        conn = sqlite3.connect(os.path.join(ROOT_PATH, 'notes.db'))
+        conn = psycopg2.connect(
+            host='postgres',
+            user='teste',
+            password='teste123',
+            database='notes'
+        )
         cursor = conn.cursor()
-        cursor.execute('DELETE FROM notes WHERE id = ?', (note_id,))
+        cursor.execute('DELETE FROM notes WHERE id = %s', (note_id,))
         conn.commit()
         conn.close()
 
@@ -119,4 +140,4 @@ def delete(note_id):
 
 if __name__ == '__main__':
     create_table()
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
