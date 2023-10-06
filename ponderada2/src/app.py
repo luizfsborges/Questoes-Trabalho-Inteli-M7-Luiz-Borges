@@ -1,34 +1,27 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import os
 import psycopg2
+import jwt
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'
 
-def create_table():
-    conn = psycopg2.connect(
-        host=os.environ.get('DB_HOST', 'localhost'),
-        port=int(os.environ.get('DB_PORT', 54321)),
-        user=os.environ.get('DB_USER', 'teste'),
-        password=os.environ.get('DB_PASSWORD', 'teste123'),
-        database=os.environ.get('DB_NAME', 'notes')
-    )
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS notes (
-            id SERIAL PRIMARY KEY,
-            title TEXT NOT NULL,
-            content TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
-    print("Table created successfully")
+def generate_token(username):
+    token = jwt.encode({'username': username}, app.config['JWT_SECRET_KEY'], algorithm='HS256')
+    return token
+
+def decode_token(token):
+    try:
+        data = jwt.decode(token, app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
+        return data['username']
+    except jwt.ExpiredSignatureError:
+        return None
 
 def get_notes():
     conn = psycopg2.connect(
-        host=os.environ.get('DB_HOST', 'localhost'),
-        port=int(os.environ.get('DB_PORT', 54321)),
+        host=os.environ.get('DB_HOST', 'postgres'),
+        port=int(os.environ.get('DB_PORT', 5432)),
         user=os.environ.get('DB_USER', 'teste'),
         password=os.environ.get('DB_PASSWORD', 'teste123'),
         database=os.environ.get('DB_NAME', 'notes')
@@ -41,8 +34,9 @@ def get_notes():
 
 @app.route('/')
 def index():
-    if 'username' in session:
+    if 'jwt_token' in session:
         return redirect(url_for('notes'))
+    
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -51,10 +45,9 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        if username == 'your_valid_username' and password == 'your_valid_password':
+        if username == 'teste' and password == 'teste123':
             # Authentication successful
-            session['username'] = username
-            create_table()
+            session['jwt_token'] = generate_token(username)
             return redirect(url_for('notes'))
         else:
             # Authentication failed
@@ -62,19 +55,21 @@ def login():
 
     return render_template('login.html')
 
+# Add a decorator to require authentication for the notes route
 @app.route('/notes', methods=['GET', 'POST'])
 def notes():
-    if 'username' not in session:
+    if 'jwt_token' not in session or not decode_token(session['jwt_token']):
         return redirect(url_for('login'))
 
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
         conn = psycopg2.connect(
-            host='postgres',
-            user='teste',
-            password='teste123',
-            database='notes'
+            host=os.environ.get('DB_HOST', 'postgres'),
+            port=int(os.environ.get('DB_PORT', 5432)),
+            user=os.environ.get('DB_USER', 'teste'),
+            password=os.environ.get('DB_PASSWORD', 'teste123'),
+            database=os.environ.get('DB_NAME', 'notes')
         )
         cursor = conn.cursor()
         cursor.execute('INSERT INTO notes (title, content) VALUES (%s, %s)', (title, content))
@@ -84,19 +79,21 @@ def notes():
     notes = get_notes()
     return render_template('notes.html', notes=notes)
 
+# Add a decorator to require authentication for the edit route
 @app.route('/edit/<int:note_id>', methods=['GET', 'POST'])
 def edit(note_id):
-    if 'username' not in session:
+    if 'jwt_token' not in session or not decode_token(session['jwt_token']):
         return redirect(url_for('login'))
 
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
         conn = psycopg2.connect(
-            host='postgres',
-            user='teste',
-            password='teste123',
-            database='notes'
+            host=os.environ.get('DB_HOST', 'postgres'),
+            port=int(os.environ.get('DB_PORT', 5432)),
+            user=os.environ.get('DB_USER', 'teste'),
+            password=os.environ.get('DB_PASSWORD', 'teste123'),
+            database=os.environ.get('DB_NAME', 'notes')
         )
         cursor = conn.cursor()
         cursor.execute('UPDATE notes SET title=%s, content=%s WHERE id=%s', (title, content, note_id))
@@ -105,10 +102,11 @@ def edit(note_id):
         return redirect(url_for('notes'))
 
     conn = psycopg2.connect(
-        host='postgres',
-        user='teste',
-        password='teste123',
-        database='notes'
+        host=os.environ.get('DB_HOST', 'postgres'),
+        port=int(os.environ.get('DB_PORT', 5432)),
+        user=os.environ.get('DB_USER', 'teste'),
+        password=os.environ.get('DB_PASSWORD', 'teste123'),
+        database=os.environ.get('DB_NAME', 'notes')
     )
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM notes WHERE id = %s', (note_id,))
@@ -117,18 +115,19 @@ def edit(note_id):
 
     return render_template('edit.html', note=note)
 
-# Modify the delete route
+# Add a decorator to require authentication for the delete route
 @app.route('/delete/<int:note_id>', methods=['POST', 'DELETE'])
 def delete(note_id):
-    if 'username' not in session:
+    if 'jwt_token' not in session or not decode_token(session['jwt_token']):
         return redirect(url_for('login'))
 
     if request.method == 'POST' or (request.method == 'POST' and request.form.get('_method') == 'DELETE'):
         conn = psycopg2.connect(
-            host='postgres',
-            user='teste',
-            password='teste123',
-            database='notes'
+            host=os.environ.get('DB_HOST', 'postgres'),
+            port=int(os.environ.get('DB_PORT', 5432)),
+            user=os.environ.get('DB_USER', 'teste'),
+            password=os.environ.get('DB_PASSWORD', 'teste123'),
+            database=os.environ.get('DB_NAME', 'notes')
         )
         cursor = conn.cursor()
         cursor.execute('DELETE FROM notes WHERE id = %s', (note_id,))
@@ -140,5 +139,4 @@ def delete(note_id):
         return "Invalid request method"
 
 if __name__ == '__main__':
-    create_table()
     app.run(debug=True, host='0.0.0.0', port=5000)
